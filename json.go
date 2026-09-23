@@ -6,14 +6,14 @@ import (
 	"fmt"
 )
 
-// object is a MAS map that remembers JSON key order so path wildcards
+// object is a MLSNBN map that remembers JSON key order so path wildcards
 // match the frozen Studio fixtures.
 type object struct {
 	keys []string
 	m    map[string]Value
 }
 
-// DecodeJSON reads a MAS value, preserving object key order.
+// DecodeJSON reads a MLSNBN value, preserving object key order.
 func DecodeJSON(data []byte) (Value, error) {
 	decoder := json.NewDecoder(bytes.NewReader(data))
 	decoder.UseNumber()

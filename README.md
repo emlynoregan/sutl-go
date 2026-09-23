@@ -37,7 +37,7 @@ func main() {
 }
 ```
 
-`sutl.DecodeJSON` reads a MAS value and keeps JSON object key order. Path wildcards (`*` and `**`) walk that order, matching the JavaScript and Python implementations and the Studio fixtures. `keys` and `values` still return keys in sorted order.
+`sutl.DecodeJSON` reads a MLSNBN value and keeps JSON object key order. Path wildcards (`*` and `**`) walk that order, matching the JavaScript and Python implementations and the Studio fixtures. `keys` and `values` still return keys in sorted order.
 
 Maps built as `map[string]any` do not remember insertion order. Decode JSON when wildcard order matters.
 
