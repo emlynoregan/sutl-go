@@ -1,0 +1,39 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://sutl-lang.org/schema/conformance-1.0.json",
+  "title": "sUTL 1.0 conformance corpus",
+  "type": "object",
+  "required": ["format", "specification", "dialect", "cases"],
+  "properties": {
+    "format": { "const": "sutl-conformance-1.0" },
+    "specification": { "const": "sUTL 1.0" },
+    "dialect": { "const": "sUTL" },
+    "description": { "type": "string" },
+    "case_schema": { "type": "object" },
+    "fixtures": { "type": "object" },
+    "cases": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["id", "status", "evidence", "expected"],
+        "properties": {
+          "id": { "type": "string", "minLength": 1 },
+          "status": { "const": "normative" },
+          "evidence": { "type": "string" },
+          "mode": {
+            "enum": [
+              "evaluate",
+              "compilelib_evaluate",
+              "declaration_test_t",
+              "studio_fixture_set"
+            ]
+          },
+          "fixture_glob": { "type": "string" }
+        },
+        "additionalProperties": true
+      }
+    }
+  },
+  "additionalProperties": true
+}

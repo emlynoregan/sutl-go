@@ -1,0 +1,1536 @@
+{
+  "format": "sutl-conformance-1.0",
+  "dialect": "sUTL",
+  "description": "Normative executable definition of sUTL 1.0. Every case is required for conformance.",
+  "case_schema": {
+    "id": "stable case name",
+    "status": "normative | provisional | disputed",
+    "evidence": "short provenance note",
+    "source": "MAS source value",
+    "transform": "sUTL transform",
+    "library": "optional transform map",
+    "expected": "expected MAS result from the working runner",
+    "historical": "optional implementation-specific observations"
+  },
+  "cases": [
+    {
+      "id": "literal-number",
+      "status": "normative",
+      "evidence": "spec grammar; all implementations",
+      "source": null,
+      "transform": 4.2,
+      "expected": 4.2
+    },
+    {
+      "id": "structural-map",
+      "status": "normative",
+      "evidence": "spec evaluate; Studio examples",
+      "source": {
+        "name": "Ada"
+      },
+      "transform": {
+        "person": "^$.name",
+        "active": true
+      },
+      "expected": {
+        "person": "Ada",
+        "active": true
+      }
+    },
+    {
+      "id": "structural-list",
+      "status": "normative",
+      "evidence": "spec evaluate; all implementations",
+      "source": {
+        "value": 2
+      },
+      "transform": [
+        1,
+        "^$.value",
+        3
+      ],
+      "expected": [
+        1,
+        2,
+        3
+      ]
+    },
+    {
+      "id": "path-root-head",
+      "status": "normative",
+      "evidence": "Python tests 15; paths page",
+      "source": {
+        "name": "Ada"
+      },
+      "transform": "^$",
+      "expected": {
+        "name": "Ada"
+      }
+    },
+    {
+      "id": "path-map-member",
+      "status": "normative",
+      "evidence": "Python tests; recovered path-basic example",
+      "source": {
+        "person": {
+          "name": "Ada"
+        }
+      },
+      "transform": "^$.person.name",
+      "expected": "Ada"
+    },
+    {
+      "id": "path-list-index",
+      "status": "normative",
+      "evidence": "Python tests 2; deployed compact path syntax",
+      "source": {
+        "items": [
+          "a",
+          "b"
+        ]
+      },
+      "transform": "^$.items.1",
+      "expected": "b"
+    },
+    {
+      "id": "path-missing-head",
+      "status": "normative",
+      "evidence": "Python tests 2 and 21; paths page",
+      "source": {},
+      "transform": "^$.missing",
+      "expected": null
+    },
+    {
+      "id": "path-wildcard",
+      "status": "normative",
+      "evidence": "recovered paths examples",
+      "source": {
+        "people": [
+          {
+            "name": "Ada"
+          },
+          {
+            "name": "Grace"
+          }
+        ]
+      },
+      "transform": "&$.people.*.name",
+      "expected": [
+        "Ada",
+        "Grace"
+      ]
+    },
+    {
+      "id": "path-recursive-wildcard",
+      "status": "normative",
+      "evidence": "Python test 19; recovered paths examples",
+      "source": {
+        "x": [
+          {
+            "y": "001"
+          },
+          {
+            "y": "002"
+          },
+          {
+            "y": "003"
+          }
+        ]
+      },
+      "transform": "&$.x.**.y",
+      "expected": [
+        "001",
+        "002",
+        "003"
+      ]
+    },
+    {
+      "id": "raw-path",
+      "status": "normative",
+      "evidence": "Python test 23; rawpathing Studio example",
+      "source": null,
+      "transform": [
+        "^%",
+        {
+          "x": 1,
+          "y": 2
+        },
+        "y"
+      ],
+      "expected": 2
+    },
+    {
+      "id": "evaluate-local-scope",
+      "status": "normative",
+      "evidence": "evaluate-transforms page; Python evaluator",
+      "source": null,
+      "transform": {
+        "!": {
+          "'": "^@.value"
+        },
+        "value": 7
+      },
+      "expected": 7
+    },
+    {
+      "id": "evaluate2-scope-delta",
+      "status": "normative",
+      "evidence": "rescued alternate Evaluate Transform documentation and handwritten JavaScript; Studio/HaxeJS contains a scope-merge defect",
+      "source": null,
+      "transform": {
+        "!!": {
+          ":": {
+            "result": "^@.value"
+          }
+        },
+        "s": {
+          "value": 7
+        }
+      },
+      "expected": {
+        "result": 7
+      },
+      "historical": {
+        "python2": "unsupported",
+        "handwritten_js": {
+          "result": 7
+        },
+        "studio_haxe_js": {
+          "result": null
+        }
+      }
+    },
+    {
+      "id": "library-path-and-call",
+      "status": "normative",
+      "evidence": "libraries page; Python and Studio evaluators",
+      "source": null,
+      "library": {
+        "addone": [
+          "&+",
+          "^@.value",
+          1
+        ]
+      },
+      "transform": {
+        "!": "^*.addone",
+        "value": 4
+      },
+      "expected": 5
+    },
+    {
+      "id": "quote-and-double-quote",
+      "status": "normative",
+      "evidence": "Python test 12; transforms page",
+      "source": {
+        "updated": 42
+      },
+      "transform": {
+        "'": {
+          "a": "^$.updated",
+          "b": {
+            "''": "^$.updated"
+          }
+        }
+      },
+      "expected": {
+        "a": "^$.updated",
+        "b": 42
+      }
+    },
+    {
+      "id": "colon-literal",
+      "status": "normative",
+      "evidence": "website transform reference; all later implementations",
+      "source": {
+        "x": 1
+      },
+      "transform": {
+        ":": "^$.x"
+      },
+      "expected": "^$.x"
+    },
+    {
+      "id": "flatten-list",
+      "status": "normative",
+      "evidence": "spec evaluate; concatenate Studio example",
+      "source": null,
+      "transform": [
+        "&&",
+        [
+          1,
+          2
+        ],
+        3,
+        [
+          4,
+          5
+        ]
+      ],
+      "expected": [
+        1,
+        2,
+        3,
+        4,
+        5
+      ]
+    },
+    {
+      "id": "compact-add-reduction",
+      "status": "normative",
+      "evidence": "structured-builtins page; Python implementation",
+      "source": null,
+      "transform": [
+        "&+",
+        1,
+        2,
+        3
+      ],
+      "expected": 6
+    },
+    {
+      "id": "string-concatenation",
+      "status": "normative",
+      "evidence": "structured-builtins reference and all implementations",
+      "source": null,
+      "transform": [
+        "&+",
+        "first",
+        "second"
+      ],
+      "expected": "firstsecond"
+    },
+    {
+      "id": "mixed-addition-fails",
+      "status": "normative",
+      "evidence": "structured-builtins reference and core equality tests",
+      "source": null,
+      "transform": [
+        "&+",
+        "1",
+        1
+      ],
+      "expected": null
+    },
+    {
+      "id": "null-add-default",
+      "status": "normative",
+      "evidence": "Python test 24; production behavior",
+      "source": null,
+      "transform": [
+        "&+",
+        null,
+        3
+      ],
+      "expected": 3
+    },
+    {
+      "id": "strict-bool-number-equality",
+      "status": "normative",
+      "evidence": "Python 2017 equality fix; Haxe tests; website prose",
+      "source": null,
+      "transform": [
+        "&=",
+        false,
+        0
+      ],
+      "expected": false
+    },
+    {
+      "id": "unicode-string-equality",
+      "status": "normative",
+      "evidence": "Python test 20 and unicode fix",
+      "source": null,
+      "transform": [
+        "&=",
+        "thing",
+        "thing"
+      ],
+      "expected": true
+    },
+    {
+      "id": "comparison-rejects-nonnumbers",
+      "status": "normative",
+      "evidence": "structured-builtins reference requires numeric operands and specifies false otherwise",
+      "source": null,
+      "transform": [
+        "&<",
+        "2",
+        10
+      ],
+      "expected": false
+    },
+    {
+      "id": "if-falsey-empty-list",
+      "status": "normative",
+      "evidence": "Python test 8; website truthiness definition",
+      "source": null,
+      "transform": {
+        "&": "if",
+        "cond": [],
+        "true": 1,
+        "false": 0
+      },
+      "expected": 0
+    },
+    {
+      "id": "reduce-sum",
+      "status": "normative",
+      "evidence": "Python reducer and tests; website reduce documentation",
+      "source": null,
+      "transform": {
+        "&": "reduce",
+        "list": [
+          1,
+          2,
+          3,
+          4
+        ],
+        "accum": 0,
+        "t": {
+          "'": [
+            "&+",
+            "^@.accum",
+            "^@.item"
+          ]
+        }
+      },
+      "expected": 10
+    },
+    {
+      "id": "sorted-keys",
+      "status": "normative",
+      "evidence": "Python 1.0.5b4 change and test 11",
+      "source": null,
+      "transform": {
+        "&": "keys",
+        "map": {
+          "z": 1,
+          "a": 2
+        }
+      },
+      "expected": [
+        "a",
+        "z"
+      ]
+    },
+    {
+      "id": "sorted-values",
+      "status": "normative",
+      "evidence": "Python 1.0.5b4 change; keys and values share ordering",
+      "source": null,
+      "transform": {
+        "&": "values",
+        "map": {
+          "z": 1,
+          "a": 2
+        }
+      },
+      "expected": [
+        2,
+        1
+      ]
+    },
+    {
+      "id": "type-separation",
+      "status": "normative",
+      "evidence": "spec, website, Python builtins",
+      "source": null,
+      "transform": [
+        {
+          "&": "type",
+          "value": {}
+        },
+        {
+          "&": "type",
+          "value": []
+        },
+        {
+          "&": "type",
+          "value": "x"
+        },
+        {
+          "&": "type",
+          "value": 1
+        },
+        {
+          "&": "type",
+          "value": true
+        },
+        {
+          "&": "type",
+          "value": null
+        }
+      ],
+      "expected": [
+        "map",
+        "list",
+        "string",
+        "number",
+        "boolean",
+        "null"
+      ]
+    },
+    {
+      "id": "makemap-skips-invalid-pairs",
+      "status": "normative",
+      "evidence": "spec and Python builtin",
+      "source": null,
+      "transform": {
+        "&": "makemap",
+        "value": [
+          [
+            "a",
+            1
+          ],
+          [
+            2,
+            "bad"
+          ],
+          [
+            "b"
+          ],
+          [
+            "c",
+            3,
+            "ignored"
+          ]
+        ]
+      },
+      "expected": {
+        "a": 1,
+        "c": 3
+      }
+    },
+    {
+      "id": "string-conversion",
+      "status": "normative",
+      "evidence": "Python test 28; recovered Studio example",
+      "source": null,
+      "transform": [
+        {
+          "&": "string",
+          "value": 45
+        },
+        {
+          "&": "string",
+          "value": true
+        },
+        {
+          "&": "string",
+          "value": null
+        },
+        {
+          "&": "string",
+          "value": {}
+        },
+        {
+          "&": "string",
+          "value": []
+        }
+      ],
+      "expected": [
+        "45",
+        "true",
+        "null",
+        "map",
+        "list"
+      ]
+    },
+    {
+      "id": "number-conversion",
+      "status": "normative",
+      "evidence": "Python test 28; recovered Studio example",
+      "source": null,
+      "transform": [
+        {
+          "&": "number",
+          "value": "14"
+        },
+        {
+          "&": "number",
+          "value": "47.9"
+        },
+        {
+          "&": "number",
+          "value": "bad"
+        },
+        {
+          "&": "number",
+          "value": true
+        },
+        {
+          "&": "number",
+          "value": null
+        }
+      ],
+      "expected": [
+        14,
+        47.9,
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "id": "split-trim-position",
+      "status": "normative",
+      "evidence": "Python tests 25-27; website builtin examples",
+      "source": null,
+      "transform": {
+        "split": {
+          "&": "split",
+          "value": "a:b",
+          "sep": ":"
+        },
+        "trim": {
+          "&": "trim",
+          "value": "  x  "
+        },
+        "found": {
+          "&": "pos",
+          "value": "HelloWorld",
+          "sub": "or"
+        },
+        "missing": {
+          "&": "pos",
+          "value": "HelloWorld",
+          "sub": "x"
+        }
+      },
+      "expected": {
+        "split": [
+          "a",
+          "b"
+        ],
+        "trim": "x",
+        "found": 6,
+        "missing": -1
+      }
+    },
+    {
+      "id": "division-json-number",
+      "status": "normative",
+      "evidence": "JavaScript behavior and mathematical intent; Python 2 differs",
+      "source": null,
+      "transform": [
+        "&/",
+        5,
+        2
+      ],
+      "expected": 2.5,
+      "historical": {
+        "python2": 2,
+        "javascript": 2.5
+      }
+    },
+    {
+      "id": "zip-shortest",
+      "status": "normative",
+      "evidence": "sUTL 1.0 defines unequal zip inputs to truncate to the shortest list",
+      "source": null,
+      "transform": {
+        "&": "zip",
+        "list": [
+          [
+            1,
+            2
+          ],
+          [
+            "a"
+          ]
+        ]
+      },
+      "expected": [
+        [
+          1,
+          "a"
+        ]
+      ],
+      "historical": {
+        "python2": [
+          [
+            1,
+            "a"
+          ]
+        ],
+        "old_spec": [
+          [
+            1,
+            "a"
+          ],
+          [
+            2,
+            null
+          ]
+        ]
+      }
+    },
+    {
+      "id": "logical-boolean-result",
+      "status": "normative",
+      "evidence": "Squarespace reference and both JavaScript implementations agree; Python leaked host-language operands",
+      "source": null,
+      "transform": [
+        "&&&",
+        "left",
+        "right"
+      ],
+      "expected": true,
+      "historical": {
+        "python2": "right",
+        "handwritten_js": true,
+        "studio_haxe_js": true
+      }
+    },
+    {
+      "id": "literal-string",
+      "status": "normative",
+      "evidence": "grammar; all implementations",
+      "source": null,
+      "transform": "hello",
+      "expected": "hello"
+    },
+    {
+      "id": "literal-boolean",
+      "status": "normative",
+      "evidence": "grammar; all implementations",
+      "source": null,
+      "transform": true,
+      "expected": true
+    },
+    {
+      "id": "literal-null",
+      "status": "normative",
+      "evidence": "grammar; all implementations",
+      "source": null,
+      "transform": null,
+      "expected": null
+    },
+    {
+      "id": "nested-structural-map",
+      "status": "normative",
+      "evidence": "dictionary transform documentation",
+      "source": {
+        "x": 3
+      },
+      "transform": {
+        "outer": {
+          "value": "^$.x"
+        }
+      },
+      "expected": {
+        "outer": {
+          "value": 3
+        }
+      }
+    },
+    {
+      "id": "nested-structural-list",
+      "status": "normative",
+      "evidence": "list transform documentation",
+      "source": {
+        "x": 1,
+        "y": 2
+      },
+      "transform": [
+        [
+          "^$.x"
+        ],
+        [
+          "^$.y"
+        ]
+      ],
+      "expected": [
+        [
+          1
+        ],
+        [
+          2
+        ]
+      ]
+    },
+    {
+      "id": "path-list-result",
+      "status": "normative",
+      "evidence": "paths page",
+      "source": {
+        "items": [
+          1,
+          2,
+          3
+        ]
+      },
+      "transform": "&$.items.*",
+      "expected": [
+        1,
+        2,
+        3
+      ]
+    },
+    {
+      "id": "path-head-wildcard",
+      "status": "normative",
+      "evidence": "paths page",
+      "source": {
+        "items": [
+          1,
+          2,
+          3
+        ]
+      },
+      "transform": "^$.items.*",
+      "expected": 1
+    },
+    {
+      "id": "path-selector-library",
+      "status": "normative",
+      "evidence": "paths and libraries pages",
+      "source": null,
+      "transform": "^*.constant",
+      "expected": 7,
+      "library": {
+        "constant": 7
+      }
+    },
+    {
+      "id": "path-selector-root-transform",
+      "status": "normative",
+      "evidence": "paths selector documentation",
+      "source": null,
+      "transform": {
+        "shown": "^~.shown"
+      },
+      "expected": {
+        "shown": "^~.shown"
+      }
+    },
+    {
+      "id": "raw-path-list-index",
+      "status": "normative",
+      "evidence": "raw path documentation",
+      "source": null,
+      "transform": [
+        "^%",
+        [
+          "a",
+          "b"
+        ],
+        1
+      ],
+      "expected": "b"
+    },
+    {
+      "id": "quote-list",
+      "status": "normative",
+      "evidence": "quote and double-quote documentation",
+      "source": {
+        "x": 4
+      },
+      "transform": {
+        "'": [
+          "^$.x",
+          {
+            "''": "^$.x"
+          }
+        ]
+      },
+      "expected": [
+        "^$.x",
+        4
+      ]
+    },
+    {
+      "id": "evaluate-scope-merge-existing",
+      "status": "normative",
+      "evidence": "evaluate transform scope update",
+      "source": {
+        "x": 2
+      },
+      "transform": {
+        "!": {
+          "'": [
+            "&+",
+            "^@.x",
+            "^@.y"
+          ]
+        },
+        "y": 3
+      },
+      "expected": 5
+    },
+    {
+      "id": "evaluate2-scalar-scope",
+      "status": "normative",
+      "evidence": "alternate evaluate transform documentation",
+      "source": null,
+      "transform": {
+        "!!": {
+          ":": "^@"
+        },
+        "s": 9
+      },
+      "expected": 9
+    },
+    {
+      "id": "flatten-empty-and-scalars",
+      "status": "normative",
+      "evidence": "flatten list documentation",
+      "source": null,
+      "transform": [
+        "&&",
+        [],
+        1,
+        null,
+        [
+          2
+        ]
+      ],
+      "expected": [
+        1,
+        null,
+        2
+      ]
+    },
+    {
+      "id": "subtract-chain",
+      "status": "normative",
+      "evidence": "structured builtins page",
+      "source": null,
+      "transform": [
+        "&-",
+        10,
+        3,
+        2
+      ],
+      "expected": 5
+    },
+    {
+      "id": "multiply-chain",
+      "status": "normative",
+      "evidence": "structured builtins page",
+      "source": null,
+      "transform": [
+        "&x",
+        2,
+        3,
+        4
+      ],
+      "expected": 24
+    },
+    {
+      "id": "divide-chain",
+      "status": "normative",
+      "evidence": "structured builtins page",
+      "source": null,
+      "transform": [
+        "&/",
+        20,
+        2,
+        5
+      ],
+      "expected": 2.0
+    },
+    {
+      "id": "string-add-chain",
+      "status": "normative",
+      "evidence": "structured builtins page",
+      "source": null,
+      "transform": [
+        "&+",
+        "a",
+        "b",
+        "c"
+      ],
+      "expected": "abc"
+    },
+    {
+      "id": "equality-null",
+      "status": "normative",
+      "evidence": "equality documentation",
+      "source": null,
+      "transform": [
+        "&=",
+        null,
+        null
+      ],
+      "expected": true
+    },
+    {
+      "id": "inequality-values",
+      "status": "normative",
+      "evidence": "inequality documentation",
+      "source": null,
+      "transform": [
+        "&!=",
+        1,
+        2
+      ],
+      "expected": true
+    },
+    {
+      "id": "comparison-greater",
+      "status": "normative",
+      "evidence": "comparison documentation",
+      "source": null,
+      "transform": [
+        "&>",
+        4,
+        3
+      ],
+      "expected": true
+    },
+    {
+      "id": "comparison-less-equal",
+      "status": "normative",
+      "evidence": "comparison documentation",
+      "source": null,
+      "transform": [
+        "&<=",
+        4,
+        4
+      ],
+      "expected": true
+    },
+    {
+      "id": "logical-and-falsey-map",
+      "status": "normative",
+      "evidence": "truthiness documentation",
+      "source": null,
+      "transform": [
+        "&&&",
+        true,
+        {}
+      ],
+      "expected": false
+    },
+    {
+      "id": "logical-or",
+      "status": "normative",
+      "evidence": "truthiness documentation",
+      "source": null,
+      "transform": [
+        "&||",
+        0,
+        "present"
+      ],
+      "expected": true
+    },
+    {
+      "id": "logical-not",
+      "status": "normative",
+      "evidence": "truthiness documentation",
+      "source": null,
+      "transform": [
+        "&!",
+        []
+      ],
+      "expected": true
+    },
+    {
+      "id": "if-true-branch",
+      "status": "normative",
+      "evidence": "conditional builtin documentation",
+      "source": null,
+      "transform": {
+        "&": "if",
+        "cond": true,
+        "true": 1,
+        "false": 0
+      },
+      "expected": 1
+    },
+    {
+      "id": "length-list",
+      "status": "normative",
+      "evidence": "unstructured builtins page",
+      "source": null,
+      "transform": {
+        "&": "len",
+        "list": [
+          1,
+          2,
+          3
+        ]
+      },
+      "expected": 3
+    },
+    {
+      "id": "length-nonlist",
+      "status": "normative",
+      "evidence": "unstructured builtins page",
+      "source": null,
+      "transform": {
+        "&": "len",
+        "list": "abc"
+      },
+      "expected": 0
+    },
+    {
+      "id": "head-list",
+      "status": "normative",
+      "evidence": "head builtin documentation",
+      "source": null,
+      "transform": [
+        "&head",
+        [
+          1,
+          2,
+          3
+        ]
+      ],
+      "expected": 1
+    },
+    {
+      "id": "tail-list",
+      "status": "normative",
+      "evidence": "tail builtin documentation",
+      "source": null,
+      "transform": [
+        "&tail",
+        [
+          1,
+          2,
+          3
+        ]
+      ],
+      "expected": [
+        2,
+        3
+      ]
+    },
+    {
+      "id": "split-default-separator",
+      "status": "normative",
+      "evidence": "Python production tests",
+      "source": null,
+      "transform": {
+        "&": "split",
+        "value": "a,b,c"
+      },
+      "expected": [
+        "a",
+        "b",
+        "c"
+      ]
+    },
+    {
+      "id": "split-maximum",
+      "status": "normative",
+      "evidence": "Python production implementation",
+      "source": null,
+      "transform": {
+        "&": "split",
+        "value": "a:b:c",
+        "sep": ":",
+        "max": 1
+      },
+      "expected": [
+        "a",
+        "b:c"
+      ]
+    },
+    {
+      "id": "lower-string",
+      "status": "normative",
+      "evidence": "Python production tests",
+      "source": null,
+      "transform": {
+        "&": "lower",
+        "value": "TeST"
+      },
+      "expected": "test"
+    },
+    {
+      "id": "upper-string",
+      "status": "normative",
+      "evidence": "Python production tests",
+      "source": null,
+      "transform": {
+        "&": "upper",
+        "value": "some words"
+      },
+      "expected": "SOME WORDS"
+    },
+    {
+      "id": "boolean-empty-map",
+      "status": "normative",
+      "evidence": "truthiness and conversion documentation",
+      "source": null,
+      "transform": {
+        "&": "boolean",
+        "value": {}
+      },
+      "expected": false
+    },
+    {
+      "id": "boolean-nonempty-list",
+      "status": "normative",
+      "evidence": "truthiness and conversion documentation",
+      "source": null,
+      "transform": {
+        "&": "boolean",
+        "value": [
+          0
+        ]
+      },
+      "expected": true
+    },
+    {
+      "id": "number-map-zero",
+      "status": "normative",
+      "evidence": "number conversion documentation and Python tests",
+      "source": null,
+      "transform": {
+        "&": "number",
+        "value": {
+          "x": 1
+        }
+      },
+      "expected": 0
+    },
+    {
+      "id": "keys-nonmap",
+      "status": "normative",
+      "evidence": "keys builtin documentation",
+      "source": null,
+      "transform": {
+        "&": "keys",
+        "map": []
+      },
+      "expected": null
+    },
+    {
+      "id": "values-nonmap",
+      "status": "normative",
+      "evidence": "values builtin documentation",
+      "source": null,
+      "transform": {
+        "&": "values",
+        "map": []
+      },
+      "expected": null
+    },
+    {
+      "id": "remove-keys",
+      "status": "normative",
+      "evidence": "Python production builtin and tests",
+      "source": null,
+      "transform": {
+        "&": "removekeys",
+        "map": {
+          "a": 1,
+          "b": 2
+        },
+        "keys": [
+          "b",
+          "x"
+        ]
+      },
+      "expected": {
+        "a": 1
+      }
+    },
+    {
+      "id": "quicksort",
+      "status": "normative",
+      "evidence": "Python and Haxe declaration tests",
+      "source": null,
+      "transform": {
+        "&": "quicksort",
+        "list": [
+          3,
+          1,
+          2,
+          1
+        ]
+      },
+      "expected": [
+        1,
+        1,
+        2,
+        3
+      ]
+    },
+    {
+      "id": "reduce-index",
+      "status": "normative",
+      "evidence": "reduce scope documentation",
+      "source": null,
+      "transform": {
+        "&": "reduce",
+        "list": [
+          "a",
+          "b",
+          "c"
+        ],
+        "accum": null,
+        "t": {
+          "'": "^@.ix"
+        }
+      },
+      "expected": 2
+    },
+    {
+      "id": "compilelib-prefix-match",
+      "status": "normative",
+      "evidence": "declaration naming and compilelib documentation",
+      "mode": "compilelib_evaluate",
+      "source": 4,
+      "declaration": {
+        "name": "caller_example_org",
+        "language": "sUTL0",
+        "requires": [
+          "addone"
+        ],
+        "transform-t": {
+          "!": "^*.addone",
+          "value": "^$"
+        }
+      },
+      "distributions": [
+        [
+          {
+            "name": "addone_example_org",
+            "language": "sUTL0",
+            "transform-t": [
+              "&+",
+              "^@.value",
+              1
+            ]
+          }
+        ]
+      ],
+      "expected": 5
+    },
+    {
+      "id": "compilelib-transitive-requirement",
+      "status": "normative",
+      "evidence": "compilelib recursive dependency documentation",
+      "mode": "compilelib_evaluate",
+      "source": 3,
+      "declaration": {
+        "name": "caller_example_org",
+        "language": "sUTL0",
+        "requires": [
+          "doubleadd"
+        ],
+        "transform-t": {
+          "!": "^*.doubleadd",
+          "value": "^$"
+        }
+      },
+      "distributions": [
+        [
+          {
+            "name": "doubleadd_example_org",
+            "language": "sUTL0",
+            "requires": [
+              "addone"
+            ],
+            "transform-t": {
+              "!": "^*.addone",
+              "value": {
+                "!": "^*.addone",
+                "value": "^@.value"
+              }
+            }
+          },
+          {
+            "name": "addone_example_org",
+            "language": "sUTL0",
+            "transform-t": [
+              "&+",
+              "^@.value",
+              1
+            ]
+          }
+        ]
+      ],
+      "expected": 5
+    },
+    {
+      "id": "declaration-test-pass",
+      "status": "normative",
+      "evidence": "declaration test-t and compilelib documentation",
+      "mode": "declaration_test_t",
+      "declaration": {
+        "name": "constant_example_org",
+        "language": "sUTL0",
+        "transform-t": 3,
+        "test-t": [
+          "&!=",
+          "^$",
+          3
+        ]
+      },
+      "distributions": [],
+      "expected": true
+    },
+    {
+      "id": "compilelib-missing-requirement",
+      "status": "normative",
+      "evidence": "working dialect safety decision; historical implementations omitted this diagnostic",
+      "mode": "compilelib_evaluate",
+      "source": null,
+      "declaration": {
+        "name": "caller_example_org",
+        "language": "sUTL0",
+        "requires": [
+          "missing"
+        ],
+        "transform-t": {
+          "!": "^*.missing"
+        }
+      },
+      "distributions": [],
+      "expected": {
+        "compile-fail": [
+          "missing requirement: missing"
+        ]
+      }
+    },
+    {
+      "id": "division-by-zero-is-null",
+      "status": "normative",
+      "evidence": "sUTL 1.0 invalid numeric-operation rule",
+      "source": null,
+      "transform": [
+        "&/",
+        1,
+        0
+      ],
+      "expected": null
+    },
+    {
+      "id": "invalid-multiplication-is-null",
+      "status": "normative",
+      "evidence": "sUTL 1.0 invalid numeric-operation rule",
+      "source": null,
+      "transform": [
+        "&x",
+        "2",
+        3
+      ],
+      "expected": null
+    },
+    {
+      "id": "invalid-collection-operands",
+      "status": "normative",
+      "evidence": "sUTL 1.0 collection builtin defaults",
+      "source": null,
+      "transform": {
+        "len": {
+          "&": "len",
+          "list": "not-a-list"
+        },
+        "head": {
+          "&": "head",
+          "b": "not-a-list"
+        },
+        "keys": {
+          "&": "keys",
+          "map": []
+        },
+        "values": {
+          "&": "values",
+          "map": []
+        }
+      },
+      "expected": {
+        "len": 0,
+        "head": null,
+        "keys": null,
+        "values": null
+      }
+    },
+    {
+      "id": "if-quoted-selected-branch",
+      "status": "normative",
+      "evidence": "structured builtin arguments are eager; quote stores branch transforms for if",
+      "source": null,
+      "transform": {
+        "&": "if",
+        "cond": true,
+        "true": {
+          ":": [
+            "&+",
+            1,
+            2
+          ]
+        },
+        "false": {
+          ":": [
+            "&+",
+            100,
+            200
+          ]
+        }
+      },
+      "expected": 3
+    },
+    {
+      "id": "library-builtin-override",
+      "status": "normative",
+      "evidence": "sUTL 1.0 library override naming rule",
+      "source": null,
+      "transform": [
+        "&+",
+        1,
+        2
+      ],
+      "library": {
+        "_override_+": "overridden"
+      },
+      "expected": "overridden"
+    },
+    {
+      "id": "compilelib-candidate-rollback",
+      "status": "normative",
+      "evidence": "failed candidates roll back partial libraries and do not poison later candidates",
+      "mode": "compilelib_evaluate",
+      "source": null,
+      "test": true,
+      "declaration": {
+        "name": "caller_example_org",
+        "language": "sUTL",
+        "requires": [
+          "impl"
+        ],
+        "transform-t": "^*.impl"
+      },
+      "distributions": [
+        [
+          {
+            "name": "impl_bad_example_org",
+            "language": "sUTL",
+            "requires": [],
+            "transform-t": 1,
+            "test-t": "bad candidate"
+          },
+          {
+            "name": "impl_good_example_org",
+            "language": "sUTL",
+            "requires": [],
+            "transform-t": 2,
+            "test-t": null
+          }
+        ]
+      ],
+      "expected": 2
+    },
+    {
+      "id": "studio-fixtures",
+      "status": "normative",
+      "evidence": "44 archived Studio programs with frozen expected results",
+      "mode": "studio_fixture_set",
+      "fixture_glob": "fixtures/studio/*.json",
+      "expected": {
+        "evaluated": 44,
+        "failures": []
+      }
+    }
+  ],
+  "fixtures": {},
+  "specification": "sUTL 1.0"
+}
