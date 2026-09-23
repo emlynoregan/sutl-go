@@ -2,8 +2,11 @@
 // the sUTL Universal Transform Language (“subtle”).
 package sutl
 
-// Version is the implementation version and matches the sUTL 1.0.0 contract.
-const Version = "1.0.0"
+// Version is this module's release. The language contract is still sUTL 1.0.0.
+const Version = "1.1.0"
+
+// ContractVersion is the sUTL language contract implemented by this module.
+const ContractVersion = "1.0.0"
 
 // Value is a MLSNBN value: a map, list, string, number, boolean, or null.
 type Value = any

@@ -9,13 +9,13 @@ This module implements the frozen [sUTL 1.0 contract](https://github.com/emlynor
 Go modules are published from this public repository. A version tag is enough for `go get` and [pkg.go.dev](https://pkg.go.dev/github.com/emlynoregan/sutl-go).
 
 ```powershell
-go get github.com/emlynoregan/sutl-go@v1.0.0
+go get github.com/emlynoregan/sutl-go@v1.1.0
 ```
 
 The command-line tool:
 
 ```powershell
-go install github.com/emlynoregan/sutl-go/cmd/sutl@v1.0.0
+go install github.com/emlynoregan/sutl-go/cmd/sutl@v1.1.0
 ```
 
 Requires Go 1.22 or later.
@@ -26,6 +26,7 @@ Requires Go 1.22 or later.
 package main
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/emlynoregan/sutl-go"
@@ -38,6 +39,19 @@ func main() {
 	// Compile once when the same transform runs against many sources.
 	program := sutl.Compile("^$.name", nil)
 	fmt.Println(program.Run(source)) // Ada
+
+	limited, err := sutl.CompileLimited("^$.name", nil, sutl.Limits{
+		MaxSteps: 100_000,
+		MaxDepth: 256,
+	})
+	if err != nil {
+		panic(err)
+	}
+	name, err := limited.RunContext(context.Background(), source)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println(name) // Ada
 }
 ```
 

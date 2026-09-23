@@ -1,6 +1,7 @@
 package sutl
 
 import (
+	"context"
 	"fmt"
 	"sync"
 )
@@ -8,11 +9,13 @@ import (
 // Program is a transform compiled to a Go function.
 // Compile once, then Run the same transform against many sources.
 type Program struct {
-	root   Value
-	runner *Runner
-	fn     compiled
-	mu     sync.Mutex
-	cache  map[string]compiled
+	root    Value
+	library Library
+	limits  Limits
+	runner  *Runner
+	fn      compiled
+	mu      sync.Mutex
+	cache   map[string]compiled
 }
 
 type compiled func(scope, source Value) Value
@@ -30,16 +33,26 @@ func Compile(transform Value, library Library) *Program {
 		library = Library{}
 	}
 	program := &Program{
-		root:   transform,
-		runner: defaultRunner,
-		cache:  map[string]compiled{},
+		root:    transform,
+		library: library,
+		runner:  defaultRunner,
+		cache:   map[string]compiled{},
 	}
 	program.fn = program.compile(transform, library)
 	return program
 }
 
 // Run applies the compiled transform to source.
+// A program created with CompileLimited panics with *LimitError if a limit
+// is exceeded. Use RunContext to receive that error as a value.
 func (p *Program) Run(source Value) Value {
+	if p.limits.active() {
+		value, err := p.RunContext(context.Background(), source)
+		if err != nil {
+			panic(err)
+		}
+		return value
+	}
 	return p.fn(source, source)
 }
 

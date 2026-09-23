@@ -14,6 +14,7 @@ type builtin func(parent Value, scope map[string]Value, library Library, source,
 // Runner evaluates sUTL transforms with an optional transform library.
 type Runner struct {
 	builtins map[string]builtin
+	budget   *budget
 }
 
 // defaultRunner is shared by Evaluate and Compile. Builtins are fixed after
@@ -250,6 +251,9 @@ func pathStep(values Value, selector Value) []Value {
 }
 
 func (r *Runner) evaluate(scope, transform Value, library Library, source, root Value) Value {
+	if r.charge() {
+		defer r.release()
+	}
 	if m, ok := asMap(transform); ok {
 		if _, exists := m["!"]; exists {
 			return r.evaluateEval(scope, m, library, source, root)
@@ -290,6 +294,9 @@ func (r *Runner) evaluate(scope, transform Value, library Library, source, root 
 }
 
 func (r *Runner) quote(scope, transform Value, library Library, source, root Value) Value {
+	if r.charge() {
+		defer r.release()
+	}
 	if m, ok := asMap(transform); ok {
 		if escaped, exists := m["''"]; exists {
 			return r.evaluate(scope, escaped, library, source, root)

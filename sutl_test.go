@@ -334,8 +334,8 @@ func TestCompiledMatchesEvaluate(t *testing.T) {
 }
 
 func TestPublicAPI(t *testing.T) {
-	if sutl.Version != "1.0.0" {
-		t.Fatalf("version %s", sutl.Version)
+	if sutl.Version != "1.1.0" || sutl.ContractVersion != "1.0.0" {
+		t.Fatalf("version %s contract %s", sutl.Version, sutl.ContractVersion)
 	}
 	if got := sutl.Evaluate(map[string]sutl.Value{"x": 3}, "^$.x", nil); !same(got, 3) {
 		t.Fatalf("evaluate returned %#v", got)
