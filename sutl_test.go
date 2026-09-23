@@ -281,6 +281,58 @@ func TestConformance(t *testing.T) {
 	}
 }
 
+func TestCompiledMatchesEvaluate(t *testing.T) {
+	corpus := asMap(t, decode(t, testdata(t, "conformance.json")))
+	for _, raw := range asList(t, corpus["cases"]) {
+		testCase := asMap(t, raw)
+		id, _ := testCase["id"].(string)
+		mode, _ := testCase["mode"].(string)
+		if mode == "" {
+			mode = "evaluate"
+		}
+		switch mode {
+		case "evaluate":
+			library := sutl.Library{}
+			if rawLib, ok := sutl.AsMap(testCase["library"]); ok {
+				for key, value := range rawLib {
+					library[key] = value
+				}
+			}
+			want := sutl.Evaluate(testCase["source"], testCase["transform"], library)
+			got := sutl.Compile(testCase["transform"], library).Run(testCase["source"])
+			if !same(got, want) {
+				gotJSON, _ := json.Marshal(got)
+				wantJSON, _ := json.Marshal(want)
+				t.Fatalf("%s: compiled %s, evaluate %s", id, gotJSON, wantJSON)
+			}
+		case "studio_fixture_set":
+			glob, _ := testCase["fixture_glob"].(string)
+			directory := filepath.Join("testdata", "contract", filepath.Dir(glob))
+			entries, err := os.ReadDir(directory)
+			if err != nil {
+				t.Fatal(err)
+			}
+			for _, entry := range entries {
+				if entry.IsDir() || !strings.HasSuffix(entry.Name(), ".json") {
+					continue
+				}
+				entry := entry
+				t.Run(entry.Name(), func(t *testing.T) {
+					fixture := asMap(t, decode(t, testdata(t, "fixtures", "studio", entry.Name())))
+					library := bundleLibrary(fixture)
+					want := sutl.Evaluate(fixture["source"], fixture["transform"], library)
+					got := sutl.Compile(fixture["transform"], library).Run(fixture["source"])
+					if !same(got, want) {
+						gotJSON, _ := json.Marshal(got)
+						wantJSON, _ := json.Marshal(want)
+						t.Fatalf("compiled %s, evaluate %s", gotJSON, wantJSON)
+					}
+				})
+			}
+		}
+	}
+}
+
 func TestPublicAPI(t *testing.T) {
 	if sutl.Version != "1.0.0" {
 		t.Fatalf("version %s", sutl.Version)

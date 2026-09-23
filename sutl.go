@@ -18,8 +18,10 @@ func AsMap(value Value) (map[string]Value, bool) {
 }
 
 // Evaluate runs a transform against a source value and optional library.
+// The builtin table is reused across calls. Compile a transform with Compile
+// when the same transform runs against many sources.
 func Evaluate(source, transform Value, library Library) Value {
-	return NewRunner().Evaluate(source, transform, library)
+	return defaultRunner.Evaluate(source, transform, library)
 }
 
 // Truthy reports sUTL truthiness.

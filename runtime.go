@@ -6,6 +6,7 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	"sync"
 )
 
 type builtin func(parent Value, scope map[string]Value, library Library, source, root Value) Value
@@ -14,6 +15,10 @@ type builtin func(parent Value, scope map[string]Value, library Library, source,
 type Runner struct {
 	builtins map[string]builtin
 }
+
+// defaultRunner is shared by Evaluate and Compile. Builtins are fixed after
+// construction, so concurrent reads are safe.
+var defaultRunner = NewRunner()
 
 // NewRunner constructs a reusable evaluator.
 func NewRunner() *Runner {
@@ -351,47 +356,189 @@ func (r *Runner) evaluateEval2(scope Value, transform map[string]Value, library 
 	return r.evaluate(nextScope, nextTransform, nextLibrary, source, root)
 }
 
+type parsedCompact struct {
+	ok   bool
+	name string
+	head bool
+	args []Value
+}
+
+// compactCache stores parses of compact builtin strings. Only strings that
+// already start with & or ^ are stored, so ordinary data strings do not grow it.
+var compactCache sync.Map
+
 func (r *Runner) isCompactBuiltin(transform Value) bool {
-	var parts []Value
-	if s, ok := asString(transform); ok {
-		for _, part := range strings.Split(s, ".") {
-			parts = append(parts, part)
-		}
-	} else if list, ok := asList(transform); ok {
-		parts = list
-	} else {
-		return false
-	}
-	if len(parts) == 0 {
-		return false
-	}
-	operation, ok := asString(parts[0])
-	if !ok || operation == "" {
-		return false
-	}
-	prefix := operation[:1]
-	return (prefix == "&" || prefix == "^") && r.builtins[operation[1:]] != nil
+	_, ok := parseCompact(transform)
+	return ok
 }
 
 func (r *Runner) evaluateCompact(scope, transform Value, library Library, source, root Value) Value {
-	var parts []Value
-	if s, ok := asString(transform); ok {
-		for _, part := range strings.Split(s, ".") {
-			if n, err := strconv.Atoi(part); err == nil {
-				parts = append(parts, n)
-			} else {
-				parts = append(parts, part)
-			}
-		}
-	} else {
-		parts = append(parts, transform.([]Value)...)
+	parsed, ok := parseCompact(transform)
+	if !ok {
+		return nil
 	}
-	operation := parts[0].(string)
 	return r.evaluateBuiltin(scope, map[string]Value{
-		"&":    operation[1:],
-		"args": parts[1:],
-		"head": operation[:1] == "^",
+		"&":    parsed.name,
+		"args": parsed.args,
+		"head": parsed.head,
 	}, library, source, root)
+}
+
+func parseCompact(transform Value) (parsedCompact, bool) {
+	if s, ok := asString(transform); ok {
+		return parseCompactString(s)
+	}
+	list, ok := asList(transform)
+	if !ok || len(list) == 0 {
+		return parsedCompact{}, false
+	}
+	operation, ok := asString(list[0])
+	if !ok || !compactOperation(operation) {
+		return parsedCompact{}, false
+	}
+	return parsedCompact{
+		ok:   true,
+		name: operation[1:],
+		head: operation[0] == '^',
+		args: list[1:],
+	}, true
+}
+
+func parseCompactString(s string) (parsedCompact, bool) {
+	if s == "" || (s[0] != '&' && s[0] != '^') {
+		return parsedCompact{}, false
+	}
+	if cached, ok := compactCache.Load(s); ok {
+		parsed := cached.(parsedCompact)
+		return parsed, parsed.ok
+	}
+	parsed := parseCompactStringSlow(s)
+	compactCache.Store(s, parsed)
+	return parsed, parsed.ok
+}
+
+func parseCompactStringSlow(s string) parsedCompact {
+	raw := strings.Split(s, ".")
+	if len(raw) == 0 || !compactOperation(raw[0]) {
+		return parsedCompact{}
+	}
+	args := make([]Value, 0, len(raw)-1)
+	for _, part := range raw[1:] {
+		if n, err := strconv.Atoi(part); err == nil {
+			args = append(args, n)
+		} else {
+			args = append(args, part)
+		}
+	}
+	return parsedCompact{
+		ok:   true,
+		name: raw[0][1:],
+		head: raw[0][0] == '^',
+		args: args,
+	}
+}
+
+func compactOperation(operation string) bool {
+	if len(operation) < 2 || (operation[0] != '&' && operation[0] != '^') {
+		return false
+	}
+	return knownBuiltin(operation[1:])
+}
+
+func knownBuiltin(name string) bool {
+	if name == "^" {
+		return true
+	}
+	if _, ok := builtinParamKeys[name]; ok {
+		return true
+	}
+	if strings.HasPrefix(name, "has") {
+		base := strings.TrimPrefix(name, "has")
+		if base == "^" {
+			return true
+		}
+		_, ok := builtinParamKeys[base]
+		return ok
+	}
+	return false
+}
+
+// builtinParamKeys lists the scope keys each builtin reads. A builtin call
+// only copies those keys from the parent scope when the transform omits them.
+// "^" is absent on purpose: that path walks the merged scope itself.
+var builtinParamKeys = map[string][]string{
+	"+":          {"a", "b"},
+	"-":          {"a", "b"},
+	"x":          {"a", "b"},
+	"/":          {"a", "b"},
+	"=":          {"a", "b"},
+	"!=":         {"a", "b"},
+	">":          {"a", "b"},
+	"<":          {"a", "b"},
+	">=":         {"a", "b"},
+	"<=":         {"a", "b"},
+	"&&":         {"a", "b"},
+	"||":         {"a", "b"},
+	"!":          {"b"},
+	"if":         {"cond", "true", "false"},
+	"reduce":     {"list", "accum", "t"},
+	"$":          {"a", "b", "notfirst"},
+	"@":          {"a", "b", "notfirst"},
+	"*":          {"a", "b", "notfirst"},
+	"~":          {"a", "b", "notfirst"},
+	"%":          {"a", "b", "notfirst"},
+	"zip":        {"list"},
+	"removekeys": {"map", "keys"},
+	"len":        {"list"},
+	"keys":       {"map"},
+	"values":     {"map"},
+	"type":       {"value"},
+	"makemap":    {"value"},
+	"quicksort":  {"list"},
+	"head":       {"b"},
+	"tail":       {"b"},
+	"split":      {"value", "sep", "max"},
+	"trim":       {"value"},
+	"pos":        {"value", "sub"},
+	"string":     {"value"},
+	"number":     {"value"},
+	"boolean":    {"value"},
+	"lower":      {"value"},
+	"upper":      {"value"},
+}
+
+func scopeForBuiltin(name string, parent Value, evaluated map[string]Value) map[string]Value {
+	if name == "^" {
+		return overlayScope(parent, evaluated)
+	}
+	keys, known := builtinParamKeys[name]
+	if !known {
+		if strings.HasPrefix(name, "has") {
+			return evaluated
+		}
+		return overlayScope(parent, evaluated)
+	}
+	parentMap, ok := asMap(parent)
+	if !ok {
+		return evaluated
+	}
+	for _, key := range keys {
+		if _, exists := evaluated[key]; exists {
+			continue
+		}
+		if value, exists := parentMap[key]; exists {
+			evaluated[key] = value
+		}
+	}
+	return evaluated
+}
+
+func overlayScope(parent Value, evaluated map[string]Value) map[string]Value {
+	next := copyMap(parent)
+	for key, value := range evaluated {
+		next[key] = value
+	}
+	return next
 }
 
 func (r *Runner) evaluateBuiltin(scope Value, transform map[string]Value, library Library, source, root Value) Value {
@@ -441,10 +588,7 @@ func (r *Runner) evaluateBuiltin(scope Value, transform map[string]Value, librar
 		return nil
 	}
 
-	nextScope := copyMap(scope)
-	for key, value := range r.evaluateMap(scope, transform, library, source, root) {
-		nextScope[key] = value
-	}
+	nextScope := scopeForBuiltin(name, scope, r.evaluateMap(scope, transform, library, source, root))
 	nextLibrary := library
 	if inner, ok := asMap(transform["*"]); ok {
 		nextLibrary = Library(r.evaluateMap(scope, inner, library, source, root))

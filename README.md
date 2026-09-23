@@ -34,6 +34,10 @@ import (
 func main() {
 	source := map[string]any{"name": "Ada"}
 	fmt.Println(sutl.Evaluate(source, "^$.name", nil)) // Ada
+
+	// Compile once when the same transform runs against many sources.
+	program := sutl.Compile("^$.name", nil)
+	fmt.Println(program.Run(source)) // Ada
 }
 ```
 
