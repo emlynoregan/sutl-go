@@ -45,6 +45,8 @@ func main() {
 
 Maps built as `map[string]any` do not remember insertion order. Decode JSON when wildcard order matters.
 
+Timings for `Evaluate` and `Compile` are in [PERFORMANCE.md](PERFORMANCE.md).
+
 ## CLI
 
 Arguments are JSON literals. Prefix a path with `@`, or use `-` for stdin.
